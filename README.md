@@ -16,7 +16,11 @@ The design is simulated using **Xilinx Vivado**
 - Finite State Machine based design
 - Controls highway and country road traffic signals
 - Includes configurable delays for signal transitions
-- Verilog testbench for simulation
+- Verilog testbench for simulation  
+ ## Tools Used
+- Verilog HDL
+- Xilinx Vivado
+
 
 ---
 
@@ -131,16 +135,81 @@ end
 
 endmodule
 ```
+## Testbench code
+```verilog
 
----
+`timescale 1ns/1ps
 
+module trafficcontrol_tb;
 
+reg clock;
+reg clear;
+reg X;
 
----
+wire [1:0] hwy;
+wire [1:0] cntry;
 
-## Tools Used
-- Verilog HDL
-- Xilinx Vivado
+/* Instantiate the Traffic Controller */
 
----
+trafficcontrol DUT (
+    .hwy(hwy),
+    .cntry(cntry),
+    .X(X),
+    .clock(clock),
+    .clear(clear)
+);
+
+/* Clock Generation */
+
+initial
+begin
+clock = 0;
+forever #5 clock = ~clock;   // 10 ns clock period
+end
+
+/* Test Procedure */
+
+initial
+begin
+
+$display("Time\tX\tHighway\tCountry");
+
+/* Initialize */
+
+clear = 1;
+X = 0;
+
+#10 clear = 0;
+
+/* No car on country road */
+
+#20 X = 0;
+
+/* Car detected on country road */
+
+#20 X = 1;
+
+/* Car leaves */
+
+#40 X = 0;
+
+/* Another car arrives */
+
+#30 X = 1;
+
+#50 X = 0;
+
+#100 $finish;
+
+end
+
+/* Monitor outputs */
+
+initial
+begin
+$monitor("%0t\t%b\t%b\t%b", $time, X, hwy, cntry);
+end
+
+endmodule
+
 
